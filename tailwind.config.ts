@@ -5,6 +5,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        minecraft: ["Minecraft", "ui-monospace", "monospace"],
         sans: [
           '"Inter"',
           "ui-sans-serif",

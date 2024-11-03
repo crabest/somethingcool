@@ -2,11 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body {
-  @apply bg-white dark:bg-gray-950;
-
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
+@layer base {
+  @font-face {
+    font-family: 'Minecraft';
+    src: url('/MinecraftRegular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
   }
+}
+
+@layer components {
+  .minecraft-button {
+    @apply relative flex items-center gap-2 rounded border-b-4 border-b-black/25 px-6 py-3 
+           font-minecraft text-white transition-all duration-150
+           hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/25 
+           active:translate-y-0 active:border-b-2 active:shadow-none;
+  }
+
+  .minecraft-border {
+    @apply relative rounded-lg border-2 border-gray-800
+           before:absolute before:-inset-[3px] before:-z-10 before:rounded-lg before:bg-black/50
+           after:absolute after:-inset-[3px] after:-z-20 after:rounded-lg after:bg-gray-800
+           hover:border-gray-700 hover:before:bg-black/60;
+  }
+
+  .minecraft-panel {
+    @apply minecraft-border bg-gradient-to-b from-gray-900/90 to-gray-950/90 p-6 
+           backdrop-blur-sm transition-all duration-300 hover:from-gray-900/95 hover:to-gray-950/95;
+  }
+
+  .page-gradient {
+    @apply bg-gradient-to-b from-black/50 via-black/60 to-black/70;
+  }
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded-full border-2 border-emerald-900 bg-emerald-800 hover:bg-emerald-700;
 }
