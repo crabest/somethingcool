@@ -13,13 +13,13 @@ const VOTE_SITES = [
     name: "TopG",
     url: "https://topg.org/minecraft-servers/server-668389",
     reward: "1 Vote Key",
-    cooldown: "24 hours",
+    cooldown: "12 hours",
   },
   {
     name: "TopMinecraftServers.org",
     url: "https://topminecraftservers.org/server/39280",
     reward: "1 Vote Key",
-    cooldown: "24 hours",
+    cooldown: "Daily (12 AM EST)",
   },
   {
     name: "Minecraft.Menu",
