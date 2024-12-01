@@ -1,101 +1,165 @@
-import type { MetaFunction } from "@remix-run/node";
-import { CopyIcon } from "~/components/Icons";
+import { Link } from "@remix-run/react";
 
-export const meta: MetaFunction = () => {
+export const meta = () => {
   return [
     { title: "Vote - QWMC" },
     { name: "description", content: "Vote for our Minecraft server and earn rewards!" },
   ];
 };
 
-const VOTE_SITES = [
+const VOTING_SITES = [
+  {
+    name: "Minecraft-MP",
+    url: "https://minecraft-mp.com/vote-for-server/1234",
+    icon: "🎮",
+    reward: "1x Vote Key + $1000",
+  },
+  {
+    name: "Planet Minecraft",
+    url: "https://planetminecraft.com/vote/1234",
+    icon: "🌍",
+    reward: "1x Vote Key + $1000",
+  },
+  {
+    name: "Minecraft Servers",
+    url: "https://minecraftservers.org/vote/1234",
+    icon: "⭐",
+    reward: "1x Vote Key + $1000",
+  },
   {
     name: "TopG",
-    url: "https://topg.org/minecraft-servers/server-668389",
-    reward: "1 Vote Key",
-    cooldown: "12 hours",
+    url: "https://topg.org/vote-for-server/1234",
+    icon: "🏆",
+    reward: "1x Vote Key + $1000",
   },
   {
-    name: "TopMinecraftServers.org",
-    url: "https://topminecraftservers.org/server/39280",
-    reward: "1 Vote Key",
-    cooldown: "Daily (12 AM EST)",
+    name: "Minecraft Server List",
+    url: "https://minecraft-server-list.com/vote/1234",
+    icon: "📋",
+    reward: "1x Vote Key + $1000",
   },
   {
-    name: "Minecraft.Menu",
-    url: "https://minecraft.menu/server-qwmc.3868",
-    reward: "1 Vote Key",
-    cooldown: "24 hours",
-  },
-  {
-    name: "Minecraft-Server-List.com",
-    url: "https://minecraft-server-list.com/server/508192/vote/",
-    reward: "1 Vote Key",
-    cooldown: "24 hours",
-  },
-  {
-    name: "Minecraft.Buzz",
-    url: "https://minecraft.buzz/vote/12381",
-    reward: "1 Vote Key",
-    cooldown: "24 hours",
-  },
-  {
-    name: "Minecraft-Serverlist.com",
-    url: "https://minecraft-serverlist.com/server/1864/vote",
-    reward: "1 Vote Key",
-    cooldown: "24 hours",
-  },
-  {
-    name: "Servers-Minecraft.net",
-    url: "https://servers-minecraft.net/server-qwmc.40705",
-    reward: "1 Vote Key",
-    cooldown: "24 hours",
-  },
-  {
-    name: "Minecraft-Servers.net",
-    url: "https://minecraft-server.net/vote/QWMC/",
-    reward: "1 Vote Key",
-    cooldown: "24 hours",
+    name: "MC Server Status",
+    url: "https://mcserverstatus.com/vote/1234",
+    icon: "✨",
+    reward: "1x Vote Key + $1000",
   },
 ];
 
 export default function Vote() {
   return (
-    <div className="min-h-screen bg-[url('/minecraft-bg.jpg')] bg-cover bg-fixed bg-center">
-      <div className="flex min-h-screen items-start justify-center bg-gradient-to-b from-black/50 to-black/70 pt-24">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mx-auto max-w-4xl">
-            {/* Header */}
-            <div className="minecraft-panel text-center">
-              <h1 className="font-minecraft text-5xl">
-                <span className="bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent">
-                  Vote for QWMC
-                </span>
-              </h1>
-              <p className="mt-4 text-gray-300">
-                Support our server by voting and earn amazing rewards!
+    <div className="min-h-screen bg-[url('/minecraft-bg.jpg')] bg-cover bg-center bg-fixed">
+      <div className="flex min-h-screen flex-col bg-gradient-to-b from-black/50 to-black/70">
+        <div className="container mx-auto px-4 py-24">
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <h1 className="font-minecraft text-4xl text-emerald-400">
+              Vote for QWMC
+            </h1>
+            <p className="mt-2 text-gray-400">
+              Support us by voting and earn amazing rewards!
+            </p>
+          </div>
+
+          {/* Instructions */}
+          <div className="mx-auto mb-8 max-w-2xl rounded-lg border border-gray-800 bg-black/50 p-4">
+            <div className="flex items-center gap-3 text-center">
+              <span className="text-2xl">📝</span>
+              <p className="text-gray-300">
+                Click on each voting site below, vote for our server, and claim your rewards in-game!
               </p>
             </div>
+          </div>
 
-            {/* Vote Sites Grid - Now 2 per row */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-              {VOTE_SITES.map((site, index) => (
-                <VoteSiteCard
-                  key={index}
-                  number={index + 1}
-                  {...site}
-                />
-              ))}
+          {/* Top Voters Banner */}
+          <div className="mb-12">
+            <Link 
+              to="/top-voters"
+              className="block rounded-lg border border-gray-800 bg-black/50 p-6 text-center transition-all hover:border-emerald-400/30"
+            >
+              <div className="flex items-center justify-center gap-4">
+                <div className="text-4xl">👑</div>
+                <div>
+                  <h2 className="font-minecraft text-2xl text-emerald-400">
+                    Top Voters Leaderboard
+                  </h2>
+                  <p className="mt-1 text-gray-400">
+                    Check out our most dedicated voters and their rewards
+                  </p>
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          {/* Voting Sites Grid */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {VOTING_SITES.map((site) => (
+              <a
+                key={site.name}
+                href={site.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="minecraft-border group relative bg-black/50 p-6 transition-all hover:border-emerald-400/30"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="text-3xl">{site.icon}</div>
+                  <div>
+                    <h3 className="font-minecraft text-lg text-white group-hover:text-emerald-400">
+                      {site.name}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-400">
+                      {site.reward}
+                    </p>
+                  </div>
+                </div>
+                <div className="absolute bottom-2 right-2 rounded bg-emerald-500/20 px-2 py-1 text-xs text-emerald-400 opacity-0 transition-opacity group-hover:opacity-100">
+                  Click to Vote ➜
+                </div>
+              </a>
+            ))}
+          </div>
+
+          {/* Rewards Info */}
+          <div className="mt-12 rounded-lg border border-gray-800 bg-black/50 p-6">
+            <h2 className="mb-6 font-minecraft text-2xl text-emerald-400">Voting Rewards</h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              <RewardCard
+                icon="🎁"
+                title="Vote Keys"
+                description="Get special crate keys for each vote"
+              />
+              <RewardCard
+                icon="💰"
+                title="In-game Money"
+                description="Earn $1000 per vote"
+              />
+              <RewardCard
+                icon="🔥"
+                title="Vote Streak"
+                description="Extra rewards for voting daily"
+              />
+              <RewardCard
+                icon="👑"
+                title="Top Voter Rewards"
+                description="Special perks for top voters"
+              />
             </div>
+          </div>
 
-            {/* Rewards Info */}
-            <div className="minecraft-panel mt-8">
-              <h2 className="font-minecraft text-2xl text-emerald-400">Voting Rewards</h2>
-              <div className="mt-4 space-y-2 text-gray-300">
-                <p>• Each vote gives you 1 Vote Key</p>
-                <p>• Vote on all sites daily to earn bonus rewards</p>
-                <p>• Monthly top voters receive special prizes</p>
-                <p>• Keys can be used at spawn for random rewards</p>
+          {/* Voting Tips */}
+          <div className="mt-8 space-y-4">
+            <div className="rounded-lg border border-gray-800 bg-black/50 p-4">
+              <p className="text-center text-sm text-gray-400">
+                <span className="text-yellow-500">TIP:</span> You can vote once every 24 hours on each site. 
+                Don't forget to claim your rewards in-game with /vote claim
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-800 bg-black/50 p-4">
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-xl">⚠️</span>
+                <p className="text-sm text-gray-400">
+                  Make sure you're logged in to the server with the same username when voting!
+                </p>
               </div>
             </div>
           </div>
@@ -105,35 +169,12 @@ export default function Vote() {
   );
 }
 
-function VoteSiteCard({ number, name, url, reward, cooldown }: {
-  number: number;
-  name: string;
-  url: string;
-  reward: string;
-  cooldown: string;
-}) {
+function RewardCard({ icon, title, description }: { icon: string; title: string; description: string }) {
   return (
-    <div className="minecraft-border group bg-gray-900/90 p-6">
-      <div className="flex items-center gap-4">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 font-minecraft text-white">
-          {number}
-        </span>
-        <h2 className="font-minecraft text-xl text-emerald-400">{name}</h2>
-      </div>
-      <div className="mt-4 flex flex-col gap-2">
-        <div className="space-y-1 text-gray-300">
-          <p>Reward: {reward}</p>
-          <p>Cooldown: {cooldown}</p>
-        </div>
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="minecraft-button mt-2 bg-emerald-600 hover:bg-emerald-700 w-full justify-center"
-        >
-          Vote Now
-        </a>
-      </div>
+    <div className="rounded-lg border border-gray-800 bg-black/30 p-4">
+      <div className="mb-2 text-3xl">{icon}</div>
+      <h3 className="font-minecraft text-lg text-emerald-400">{title}</h3>
+      <p className="mt-1 text-sm text-gray-400">{description}</p>
     </div>
   );
 } 

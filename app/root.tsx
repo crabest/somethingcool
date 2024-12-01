@@ -1,6 +1,8 @@
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
+import { useLocation } from "@remix-run/react";
+import { Navigation } from "./components/Navigation";
+import { Footer } from "./components/Footer";
 import type { LinksFunction } from "@remix-run/node";
-import { Navigation } from "~/components/Navigation";
 
 import "./tailwind.css";
 
@@ -18,17 +20,21 @@ export const links: LinksFunction = () => [
 ];
 
 export default function App() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="h-full">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
       </head>
-      <body className="min-h-screen bg-[#1A1B1E] text-white">
-        <Navigation />
+      <body className="min-h-screen bg-[#1A1B1E] text-white flex flex-col">
+        {!isAdminRoute && <Navigation />}
         <Outlet />
+        {!isAdminRoute && <Footer />}
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
