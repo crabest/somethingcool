@@ -1,16 +1,16 @@
 services:
-  # web:
-  #   build: .
-  #   container_name: qwmc-website
-  #   restart: always
-  #   ports:
-  #     - "127.0.0.1:8080:3000"
-  #   environment:
-  #     - NODE_ENV=production
-  #   volumes:
-  #     - ./public:/app/public
-  #   depends_on:
-  #     - db
+  web:
+    build: .
+    container_name: qwmc-website
+    restart: always
+    ports:
+      - "127.0.0.1:8080:3000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./public:/app/public
+    depends_on:
+      - db
   db:
     image: mariadb:11
     environment:
