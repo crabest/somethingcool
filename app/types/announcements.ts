@@ -1,4 +1,4 @@
-export interface Announcement {
+export interface News {
   id: string;
   title: string;
   content: string;
@@ -21,5 +21,5 @@ export interface Announcement {
   scheduledFor?: string;
   lastEditedAt?: string;
   lastEditedBy?: string;
-  relatedAnnouncements?: string[];
+  relatedNews?: string[];
 } 

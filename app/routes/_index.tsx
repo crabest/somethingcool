@@ -1,6 +1,6 @@
 import type { MetaFunction } from "@remix-run/node";
 import { DiscordIcon, StoreIcon, VoteIcon, RulesIcon } from "~/components/Icons";
-import { NewsAnnouncements } from "~/components/NewsAnnouncements";
+import { NewsSection } from "~/components/NewsSection";
 import { PlayerStats } from "~/components/PlayerStats";
 
 export const meta: MetaFunction = () => {
@@ -29,19 +29,15 @@ export default function Index() {
             <div className="group relative">
               <div className="minecraft-border flex items-center gap-3 bg-gray-900/90 px-6 py-3">
                 <p className="font-minecraft text-xl text-gray-300 group-hover:text-emerald-400 transition-colors">
-                  <span className="inline-block animate-pulse hover:animate-none" style={{animationDelay: "0.1s"}}>p</span>
-                  <span className="inline-block animate-pulse hover:animate-none" style={{animationDelay: "0.2s"}}>l</span>
-                  <span className="inline-block animate-pulse hover:animate-none" style={{animationDelay: "0.3s"}}>a</span>
-                  <span className="inline-block animate-pulse hover:animate-none" style={{animationDelay: "0.4s"}}>y</span>
-                  <span className="inline-block text-emerald-400">.</span>
-                  <span className="inline-block animate-pulse hover:animate-none" style={{animationDelay: "0.5s"}}>q</span>
-                  <span className="inline-block animate-pulse hover:animate-none" style={{animationDelay: "0.6s"}}>w</span>
-                  <span className="inline-block animate-pulse hover:animate-none" style={{animationDelay: "0.7s"}}>m</span>
-                  <span className="inline-block animate-pulse hover:animate-none" style={{animationDelay: "0.8s"}}>c</span>
-                  <span className="inline-block text-emerald-400">.</span>
-                  <span className="inline-block animate-pulse hover:animate-none" style={{animationDelay: "0.9s"}}>n</span>
-                  <span className="inline-block animate-pulse hover:animate-none" style={{animationDelay: "1s"}}>e</span>
-                  <span className="inline-block animate-pulse hover:animate-none" style={{animationDelay: "1.1s"}}>t</span>
+                  {Array.from('play.qwmc.net').map((char, i) => (
+                    <span 
+                      key={i}
+                      className={`inline-block ${char === '.' ? 'text-emerald-400' : 'animate-pulse hover:animate-none'}`}
+                      style={char !== '.' ? {animationDelay: `${(i + 1) * 0.1}s`} : undefined}
+                    >
+                      {char}
+                    </span>
+                  ))}
                 </p>
                 <button 
                   className="rounded bg-emerald-600 px-3 py-1 text-sm font-bold text-white transition-all hover:bg-emerald-700 hover:scale-105 relative group"
@@ -99,10 +95,7 @@ export default function Index() {
           <div className="grid gap-8 pb-20 lg:grid-cols-3">
             {/* News Section - Takes 2 columns */}
             <div className="lg:col-span-2">
-              <NewsAnnouncements />
-              <div className="mt-8">
-                <PlayerStats />
-              </div>
+              <NewsSection />
             </div>
 
             {/* Features Section - Takes 1 column */}

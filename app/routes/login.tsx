@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { Link } from "@remix-run/react";
+import { json, redirect } from "@remix-run/node";
+import { Link, useActionData } from "@remix-run/react";
+import type { ActionFunctionArgs } from "@remix-run/node";
+import { verifyLogin } from "~/models/user.server";
+import { createUserSession } from "~/session.server";
 
 export const meta = () => {
   return [
@@ -8,66 +12,102 @@ export const meta = () => {
   ];
 };
 
-export default function Login() {
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-  });
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  const remember = formData.get("remember") === "on";
 
+  if (!email || !password) {
+    return json(
+      { errors: { email: "Email is required", password: "Password is required" } },
+      { status: 400 }
+    );
+  }
+
+  const user = await verifyLogin(email, password);
+  if (!user) {
+    return json(
+      { errors: { general: "Invalid email or password" } },
+      { status: 400 }
+    );
+  }
+
+  return createUserSession({
+    request,
+    userId: user.id,
+    remember,
+    redirectTo: "/",
+  });
+}
+
+export default function Login() {
+  const actionData = useActionData<typeof action>();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    remember: false,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setIsLoading(true);
-
     try {
-      // TODO: Implement login logic
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      console.log('Login attempt:', formData);
+      const form = e.target as HTMLFormElement;
+      const formData = new FormData(form);
+      const response = await fetch('/login', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.errors?.general || "Login failed");
+      }
+
+      // If successful, the server will redirect us
+      window.location.href = '/';
     } catch (err) {
-      setError('Failed to login. Please try again.');
-    } finally {
+      console.error('Login error:', err);
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[url('/minecraft-bg.jpg')] bg-cover bg-center bg-fixed">
+    <div className="min-h-screen bg-[url('/minecraft-bg.jpg')] bg-cover bg-center bg-fixed mt-12">
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-black/50 to-black/70">
         <div className="w-full max-w-md px-4">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="font-minecraft text-4xl text-emerald-400">
-              Login
+              Welcome Back
             </h1>
             <p className="mt-2 text-gray-400">
-              Sign in with your Minecraft account
+              Login to your account
             </p>
           </div>
 
           {/* Login Form */}
           <div className="minecraft-border rounded-lg bg-black/50 p-8">
-            {error && (
+            {actionData?.errors?.general && (
               <div className="mb-4 rounded-lg border border-red-500/50 bg-red-500/10 p-3 text-center text-sm text-red-400">
-                {error}
+                {actionData.errors.general}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form method="post" onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="mb-2 block text-sm text-gray-400">
-                  Minecraft Username
+                  Email Address
                 </label>
                 <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   className="minecraft-border w-full bg-black/50 p-3 text-white transition-colors focus:border-emerald-400/50"
                   required
-                  autoComplete="username"
-                  placeholder="Enter your username"
                   disabled={isLoading}
                 />
               </div>
@@ -78,14 +118,37 @@ export default function Login() {
                 </label>
                 <input
                   type="password"
+                  name="password"
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   className="minecraft-border w-full bg-black/50 p-3 text-white transition-colors focus:border-emerald-400/50"
                   required
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
                   disabled={isLoading}
                 />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="remember"
+                    name="remember"
+                    checked={formData.remember}
+                    onChange={(e) => setFormData(prev => ({ ...prev, remember: e.target.checked }))}
+                    className="h-4 w-4 rounded border-gray-800"
+                    disabled={isLoading}
+                  />
+                  <label htmlFor="remember" className="text-sm text-gray-400">
+                    Remember me
+                  </label>
+                </div>
+
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  Forgot password?
+                </Link>
               </div>
 
               <button
@@ -116,27 +179,9 @@ export default function Login() {
                 to="/register"
                 className="text-emerald-400 hover:text-emerald-300 transition-colors"
               >
-                Register now
+                Create one here
               </Link>
             </p>
-          </div>
-
-          {/* Help Section */}
-          <div className="mt-8 rounded-lg border border-gray-800 bg-black/50 p-4">
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-xl">❓</span>
-              <p className="text-center text-sm text-gray-400">
-                Having trouble logging in? Contact us on{' '}
-                <a 
-                  href="https://discord.gg/yourserver" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-emerald-400 hover:text-emerald-300 transition-colors"
-                >
-                  Discord
-                </a>
-              </p>
-            </div>
           </div>
         </div>
       </div>

@@ -17,6 +17,10 @@ export const links: LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
   },
+  {
+    rel: "stylesheet",
+    href: "https://cdn.quilljs.com/1.3.7/quill.snow.css"
+  },
 ];
 
 export default function App() {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "@remix-run/react";
+import { Link, useFetcher } from "@remix-run/react";
 
 interface User {
   username: string;
@@ -7,9 +7,10 @@ interface User {
 }
 
 export function UserMenu() {
-  const [user, setUser] = useState<User | null>({username: 'TorrenG', role: 'admin'});
+  const [user, setUser] = useState<User | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const fetcher = useFetcher();
 
   useEffect(() => {
     // Handle clicks outside dropdown
@@ -25,14 +26,14 @@ export function UserMenu() {
 
   // Separate useEffect for user data
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = document.cookie.split('; ').find(row => row.startsWith('userInfo='))?.split('=')[1];
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         if (parsedUser?.username) {  // Verify the parsed data has required fields
           setUser(parsedUser);
         } else {
-          console.error('Invalid user data format');
+          console.error('Invalid user data format', typeof parsedUser);
         //   localStorage.removeItem('user');
         }
       } catch (e) {
@@ -42,10 +43,24 @@ export function UserMenu() {
     }
   }, []); // Run only once on mount
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-    setShowDropdown(false);
+  const handleLogout = async () => {
+    try {
+      // Make a POST request to /logout
+      await fetch('/logout', { method: 'POST' });
+      
+      // Clear cookies manually as backup
+      // document.cookie = "userInfo=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+      // document.cookie = "__session=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+      
+      // Update UI
+      setUser(null);
+      setShowDropdown(false);
+      
+      // Redirect to home page
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   if (!user) {

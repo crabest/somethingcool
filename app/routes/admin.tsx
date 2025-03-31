@@ -84,9 +84,18 @@ const MENU_ITEMS = [
     ),
   },
   {
-    path: "/admin/announcements",
+    title: "News",
+    path: "/admin/news",
     icon: <NewsIcon />,
-    title: "Announcements"
+  },
+  {
+    title: "Tickets",
+    path: "/admin/tickets",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+      </svg>
+    ),
   },
 ];
 
@@ -131,7 +140,29 @@ export default function AdminDashboard() {
           </div>
 
           {/* Admin Info */}
-          <div className="border-t border-gray-800 p-4">
+          <div className="border-t border-gray-800 p-4 space-y-2">
+            {/* Back to Home Link */}
+            <Link 
+              to="/"
+              className="flex items-center gap-2 rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-800 hover:text-emerald-400"
+            >
+              <svg 
+                className="h-5 w-5" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              Back to Home
+            </Link>
+
+            {/* Admin Profile */}
             <div className="minecraft-border-sm rounded-lg bg-gray-800/50 p-4">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-lg bg-emerald-500/20 p-2">

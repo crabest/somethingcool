@@ -221,13 +221,13 @@ function RewardTier({ title, description, rewards }: { title: string; descriptio
 // Mock data
 const topVoters: VoterStats[] = [
   {
-    username: "TorrenG",
+    username: "DuckyKnightMC",
     votes: 487,
     streak: 65,
     lastVote: "2024-03-15",
     rank: 1,
     rewards: ["Top Voter", "Streak Master"],
-    avatar: "https://mc-heads.net/avatar/TorrenG"
+    avatar: "https://mc-heads.net/avatar/DuckyKnightMC"
   },
   {
     username: "Luky1Up",

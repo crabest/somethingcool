@@ -1,41 +1,146 @@
-import { useState } from "react";
-import type { Announcement } from "~/types/announcements";
-import { RichTextEditor } from "~/components/RichTextEditor";
+import { useState, useEffect, useRef } from "react";
+import type { News } from "~/types/news";
+import { json, type ActionFunctionArgs } from "@remix-run/node";
+import { useActionData } from "@remix-run/react";
+import { createNews } from "~/models/news.server";
+import { requireUserId } from "~/session.server";
+import type { Quill } from 'quill';
 
-type AnnouncementStatus = 'all' | 'draft' | 'published' | 'scheduled';
+type NewsStatus = 'all' | 'draft' | 'published' | 'scheduled';
 type SortOption = 'newest' | 'oldest' | 'mostViewed' | 'mostLiked';
 
-export default function AdminAnnouncements() {
-  const [formData, setFormData] = useState<Partial<Announcement>>({
+const TOOLBAR_OPTIONS = [
+  [{ 'header': [1, 2, 3, false] }],
+  ['bold', 'italic', 'underline', 'strike'],
+  [{ 'color': [] }, { 'background': [] }],
+  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+  ['link', 'image', 'video'],
+  ['clean']
+];
+
+export async function action({ request }: ActionFunctionArgs) {
+  const userId = await requireUserId(request);
+  
+  if (request.method !== "POST") {
+    return json({ error: "Method not allowed" }, { status: 405 });
+  }
+
+  try {
+    const formData = await request.formData();
+    const news = {
+      title: formData.get("title") as string,
+      content: formData.get("content") as string,
+      type: formData.get("type") as News["type"],
+      status: formData.get("status") as News["status"],
+      priority: formData.get("priority") === "true",
+      scheduledFor: formData.get("scheduledFor") 
+        ? new Date(formData.get("scheduledFor") as string)
+        : null,
+    };
+
+    const newNews = await createNews(news, userId);
+    return json({ success: true, news: newNews });
+  } catch (error) {
+    console.error("Failed to create news:", error);
+    return json(
+      { error: "Failed to create news post. Please try again." },
+      { status: 500 }
+    );
+  }
+}
+
+export default function AdminNews() {
+  const quillRef = useRef<Quill>();
+  const editorRef = useRef<HTMLDivElement>(null);
+  const actionData = useActionData<typeof action>();
+  const [formData, setFormData] = useState<Partial<News>>({
     type: 'general',
     priority: false,
-    status: 'draft',
-    author: {
-      name: 'TorrenG',
-      role: 'Admin'
-    }
+    status: 'draft'
   });
 
   const [activeTab, setActiveTab] = useState<'create' | 'manage'>('create');
-  const [statusFilter, setStatusFilter] = useState<AnnouncementStatus>('all');
+  const [statusFilter, setStatusFilter] = useState<NewsStatus>('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showScheduler, setShowScheduler] = useState(false);
   const [showTagManager, setShowTagManager] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (typeof window === 'undefined' || !editorRef.current || quillRef.current) return;
+
+    const loadQuill = async () => {
+      const Quill = (await import('quill')).default;
+      
+      // Create container elements
+      const toolbarContainer = document.createElement('div');
+      const editorContainer = document.createElement('div');
+      editorRef.current?.appendChild(toolbarContainer);
+      editorRef.current?.appendChild(editorContainer);
+
+      quillRef.current = new Quill(editorContainer, {
+        theme: 'snow',
+        modules: {
+          toolbar: {
+            container: toolbarContainer,
+            options: TOOLBAR_OPTIONS
+          }
+        }
+      });
+
+      quillRef.current.on('text-change', () => {
+        setFormData(prev => ({
+          ...prev,
+          content: quillRef.current?.root.innerHTML || ''
+        }));
+      });
+
+      // Set initial content if any
+      if (formData.content) {
+        quillRef.current.root.innerHTML = formData.content;
+      }
+    };
+
+    loadQuill();
+
+    return () => {
+      if (editorRef.current) {
+        editorRef.current.innerHTML = '';
+      }
+      quillRef.current = undefined;
+    };
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement announcement creation logic
-    console.log('New announcement:', formData);
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    
+    // Add all form data
+    Object.entries(formData).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
   };
 
   return (
     <div className="container mx-auto p-6">
+      {/* Show success/error messages */}
+      {actionData?.error && (
+        <div className="mb-4 rounded-lg bg-red-500/10 p-4 text-red-400">
+          {actionData.error}
+        </div>
+      )}
+      {actionData?.success && (
+        <div className="mb-4 rounded-lg bg-emerald-500/10 p-4 text-emerald-400">
+          News post created successfully!
+        </div>
+      )}
+
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="font-minecraft text-3xl text-emerald-400">Manage Announcements</h1>
-          <p className="mt-2 text-gray-400">Create and manage server announcements</p>
+          <h1 className="font-minecraft text-3xl text-emerald-400">Manage News</h1>
+          <p className="mt-2 text-gray-400">Create and manage server news</p>
         </div>
 
         <div className="flex gap-4">
@@ -64,9 +169,8 @@ export default function AdminAnnouncements() {
 
       {activeTab === 'create' ? (
         <div className="grid gap-8 lg:grid-cols-2">
-          {/* Create Announcement Form */}
           <div className="rounded-lg border border-gray-800 bg-black/50 p-6">
-            <h2 className="mb-6 font-minecraft text-xl text-white">Create Announcement</h2>
+            <h2 className="mb-6 font-minecraft text-xl text-white">Create News Post</h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -82,10 +186,12 @@ export default function AdminAnnouncements() {
 
               <div>
                 <label className="mb-2 block text-sm text-gray-400">Content</label>
-                <RichTextEditor
-                  value={formData.content || ''}
-                  onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
-                />
+                <div className="minecraft-border bg-black/50">
+                  <div 
+                    ref={editorRef} 
+                    className="text-white [&_.ql-toolbar]:border-gray-700 [&_.ql-container]:border-gray-700 [&_.ql-toolbar]:bg-black/30 [&_.ql-container]:bg-transparent [&_.ql-editor]:min-h-[200px] [&_.ql-editor]:text-white [&_.ql-snow]:border-gray-700 [&_.ql-stroke]:!text-white [&_.ql-picker]:!text-white [&_.ql-picker-options]:bg-gray-900" 
+                  />
+                </div>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -96,7 +202,7 @@ export default function AdminAnnouncements() {
                     value={formData.type}
                     onChange={(e) => setFormData(prev => ({ 
                       ...prev, 
-                      type: e.target.value as Announcement['type']
+                      type: e.target.value as News['type']
                     }))}
                   >
                     <option value="general">General</option>
@@ -114,7 +220,7 @@ export default function AdminAnnouncements() {
                     onChange={(e) => {
                       setFormData(prev => ({ 
                         ...prev, 
-                        status: e.target.value as Announcement['status']
+                        status: e.target.value as News['status']
                       }));
                       if (e.target.value === 'scheduled') {
                         setShowScheduler(true);
@@ -189,11 +295,7 @@ export default function AdminAnnouncements() {
                   onClick={() => setFormData({ 
                     type: 'general', 
                     priority: false,
-                    status: 'draft',
-                    author: {
-                      name: 'TorrenG',
-                      role: 'Admin'
-                    }
+                    status: 'draft'
                   })}
                   className="rounded bg-gray-800 px-4 py-2 text-white transition-colors hover:bg-gray-700"
                 >
@@ -223,7 +325,7 @@ export default function AdminAnnouncements() {
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className={`rounded-full px-3 py-1 text-xs ${getTypeStyles(formData.type as Announcement['type'])}`}>
+                    <span className={`rounded-full px-3 py-1 text-xs ${getTypeStyles(formData.type as News['type'])}`}>
                       {formData.type}
                     </span>
                     <h3 className="font-minecraft text-lg text-white">{formData.title}</h3>
@@ -236,13 +338,13 @@ export default function AdminAnnouncements() {
                 <div className="mt-4 flex items-center gap-3">
                   <div className="h-8 w-8 rounded-full bg-emerald-500/20" />
                   <div>
-                    <div className="text-sm font-semibold text-emerald-400">{formData.author?.name}</div>
-                    <div className="text-xs text-gray-400">{formData.author?.role}</div>
+                    <div className="text-sm font-semibold text-emerald-400">Author Name</div>
+                    <div className="text-xs text-gray-400">Role</div>
                   </div>
                 </div>
                 
                 <div className="mt-4 text-gray-300">
-                  {renderFormattedContent(formData.content || '')}
+                  <div dangerouslySetInnerHTML={{ __html: formData.content || '' }} />
                 </div>
 
                 {selectedTags.length > 0 && (
@@ -304,7 +406,7 @@ export default function AdminAnnouncements() {
 
               <input
                 type="search"
-                placeholder="Search announcements..."
+                placeholder="Search news posts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="minecraft-border w-64 rounded bg-black/50 px-3 py-1 text-sm text-white placeholder-gray-500"
@@ -312,9 +414,9 @@ export default function AdminAnnouncements() {
             </div>
           </div>
 
-          {/* Announcement list would go here */}
+          {/* News Post list would go here */}
           <div className="text-center text-gray-400">
-            No announcements found
+            No news posts found
           </div>
         </div>
       )}
@@ -323,7 +425,7 @@ export default function AdminAnnouncements() {
       {showScheduler && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-md rounded-lg border border-gray-800 bg-gray-900 p-6">
-            <h3 className="mb-4 font-minecraft text-lg text-white">Schedule Announcement</h3>
+            <h3 className="mb-4 font-minecraft text-lg text-white">Schedule News Post</h3>
             <input
               type="datetime-local"
               className="minecraft-border mb-4 w-full bg-black/50 p-2 text-white"
@@ -371,7 +473,7 @@ export default function AdminAnnouncements() {
   );
 }
 
-function getTypeStyles(type: Announcement['type']) {
+function getTypeStyles(type: News['type']) {
   switch (type) {
     case 'update':
       return 'bg-blue-500/20 text-blue-400';
@@ -382,30 +484,4 @@ function getTypeStyles(type: Announcement['type']) {
     default:
       return 'bg-gray-500/20 text-gray-400';
   }
-}
-
-function renderFormattedContent(content: string) {
-  let formatted = content
-    // Bold
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    // Italic
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    // Underline
-    .replace(/__(.*?)__/g, '<u>$1</u>')
-    // Links
-    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-emerald-400 hover:underline" target="_blank" rel="noopener noreferrer">$1</a>')
-    // Images
-    .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="rounded-lg my-2 max-w-full">')
-    // Colored text
-    .replace(/\{color:(.*?)\}(.*?)\{\/color\}/g, '<span style="color: $1">$2</span>')
-    // Lists
-    .replace(/^- (.*?)$/gm, '<li class="ml-4">$1</li>')
-    // Quotes
-    .replace(/^> (.*?)$/gm, '<blockquote class="border-l-4 border-emerald-400/50 pl-4 italic text-gray-400">$1</blockquote>')
-    // Code
-    .replace(/`(.*?)`/g, '<code class="rounded bg-black/30 px-1.5 py-0.5 font-mono text-emerald-400">$1</code>')
-    // New lines
-    .replace(/\n/g, '<br>');
-
-  return <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: formatted }} />;
 } 
